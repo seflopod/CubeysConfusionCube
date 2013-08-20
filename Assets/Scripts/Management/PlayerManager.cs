@@ -82,14 +82,14 @@ public class PlayerManager
 	
 	public void RotateY(float movement)
 	{
-		_playerGameObject.transform.RotateAroundLocal(Vector3.up, _data.turnSpeed*movement);	
+		_playerGameObject.transform.Rotate(Vector3.up * _data.turnSpeed*movement, Space.Self);
 	}
 	
 	public void RotateX(float movement)
 	{
 		GameObject cam = GameObject.FindGameObjectWithTag("MainCamera");
 		
-		cam.transform.RotateAroundLocal(-Vector3.right, _data.turnSpeed*movement);
+		cam.transform.Rotate(-Vector3.right * _data.turnSpeed*movement, Space.Self);
 	}
 	
 	public void AddScore(Color c)

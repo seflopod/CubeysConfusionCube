@@ -73,14 +73,14 @@ public class GameManager
 	}
 	
 	#region wasd_handle
-	public void HandleKeyboard(bool fwd, bool back, bool right, bool left)
+	public void HandleKeyboard(float horiz, float vert)
 	{
 		switch(_state)
 		{
 		case GameStates.MainMenu:
 			break;
 		case GameStates.Playing:
-			PlayingWASD(fwd, back, right, left);
+			PlayingWASD((vert>0), (vert<0), (horiz>0), (horiz<0));
 			break;
 		case GameStates.GameOver:
 			break;

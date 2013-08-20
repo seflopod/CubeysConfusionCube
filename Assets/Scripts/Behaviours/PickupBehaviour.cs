@@ -24,7 +24,7 @@ public class PickupBehaviour : MonoBehaviour
 	
 	private void Update()
 	{
-		transform.RotateAround(Vector3.up, rotationSpeed * Time.deltaTime);
+		transform.Rotate(Vector3.up * rotationSpeed * Time.deltaTime);
 		if(_incI)
 		{
 			_light.intensity+=_dIdT*Time.deltaTime;

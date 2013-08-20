@@ -64,7 +64,7 @@ public class ElevatorManager
 	
 	public void RemoveChild()
 	{
-		if(_elevatorGameObject.transform.GetChildCount() > 0)
+		if(_elevatorGameObject.transform.childCount > 0)
 			_elevatorGameObject.transform.GetChild(0).parent = null;
 	}
 	public bool IsMovingUp { get { return _moveUp; } }
