@@ -160,7 +160,10 @@ public class GameManager
 	public void MoveElevator()
 	{
 		if(_elevator.IsMovingUp)
+		{
 			_elevator.MoveUp();
+			_player.MoveUp(_elevator.Speed);
+		}
 	}
 	
 	public void ShowEnd()

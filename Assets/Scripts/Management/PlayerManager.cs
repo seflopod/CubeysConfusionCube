@@ -75,6 +75,11 @@ public class PlayerManager
 		mvmnt+=relRight * ((moveLeft)?-1:1);// * _data.tilesPerMove;
 	}
 	
+	public void MoveUp(float speed)
+	{
+		_playerGameObject.transform.Translate(Vector3.up*speed*Time.deltaTime);
+	}
+	
 	private void ApplyGravity(ref Vector3 mvmnt)
 	{
 		mvmnt.y-=_data.gravity*Time.deltaTime;
@@ -90,6 +95,17 @@ public class PlayerManager
 		GameObject cam = GameObject.FindGameObjectWithTag("MainCamera");
 		
 		cam.transform.Rotate(-Vector3.right * _data.turnSpeed*movement, Space.Self);
+		float rot = cam.transform.rotation.eulerAngles.x;
+		if(rot < 180.0f && rot > _data.maxVerticalLookAngle)
+		{
+			rot = _data.maxVerticalLookAngle;
+			cam.transform.localRotation = Quaternion.Euler(rot, 0.0f, 0.0f);
+		}
+		if(rot > 180.0f && rot < 360 - _data.maxVerticalLookAngle)
+		{
+			rot = 360 - _data.maxVerticalLookAngle;
+			cam.transform.localRotation = Quaternion.Euler(rot, 0.0f, 0.0f);
+		}
 	}
 	
 	public void AddScore(Color c)

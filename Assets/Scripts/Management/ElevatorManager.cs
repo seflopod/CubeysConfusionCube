@@ -39,7 +39,7 @@ public class ElevatorManager
 		if(_elevatorGameObject == null)
 			Debug.LogError("Couldn't spawn elevator");
 		
-		GameObject.FindGameObjectWithTag("Player").transform.parent = _elevatorGameObject.transform;
+		//GameObject.FindGameObjectWithTag("Player").transform.parent = _elevatorGameObject.transform;
 		_elevatorGameObject.GetComponent<MeshRenderer>().materials[0].SetColor("_Color", ElevatorColor);
 		_speed = speed;
 		_die = false;
@@ -69,4 +69,5 @@ public class ElevatorManager
 	}
 	public bool IsMovingUp { get { return _moveUp; } }
 	public Color ElevatorColor { get; set; }
+	public float Speed { get { return _speed; } }
 }

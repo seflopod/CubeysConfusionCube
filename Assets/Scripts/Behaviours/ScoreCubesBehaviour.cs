@@ -11,13 +11,19 @@ public class ScoreCubesBehaviour : MonoBehaviour
 	};
 	
 	private ScoreCubeBehaviour[] _cubes;
-	
 	private void Awake()
 	{
 		_cubes = new ScoreCubeBehaviour[3];
 		_cubes[0] = transform.FindChild("RedScoreCube").gameObject.GetComponent<ScoreCubeBehaviour>();
 		_cubes[1] = transform.FindChild("YellowScoreCube").gameObject.GetComponent<ScoreCubeBehaviour>();
 		_cubes[2] = transform.FindChild("BlueScoreCube").gameObject.GetComponent<ScoreCubeBehaviour>();
+		Camera cam = (GameObject.FindGameObjectWithTag("ScoreCam")).GetComponent<Camera>();
+		float zDist = (transform.position - cam.gameObject.transform.position).z;
+		Vector3 left = cam.ViewportToWorldPoint(new Vector3(0.0f, 0.5f, zDist));
+		Vector3 right = cam.ViewportToWorldPoint(new Vector3(1.0f, 0.5f, zDist));
+		float viewWidth = (right - left).magnitude;
+		float scale = viewWidth/(3 * Mathf.Sqrt(2.0f));
+		transform.localScale = new Vector3(scale, scale, scale);
 	}
 	
 	public void AddOne(ScoreCubesBehaviour.ScoreCubeColor color)
@@ -33,12 +39,9 @@ public class ScoreCubesBehaviour : MonoBehaviour
 	public void TurnOnExitSign()
 	{
 		//not very scalable
-		gameObject.GetComponentInChildren<GUITexture>().enabled = true;
-	}
-	
-	public void TurnOffExitSign()
-	{
-		//not very scalable
-		gameObject.GetComponentInChildren<GUITexture>().enabled = false;
+		print ("Turning on");
+		Color green = new Color(0.0f, 192.0f/255.0f, 1.0f/255.0f);
+		for(int i=0;i<3;++i)
+			_cubes[i].ChangeColor(green);
 	}
 }

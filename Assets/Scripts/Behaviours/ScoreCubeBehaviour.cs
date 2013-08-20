@@ -31,4 +31,12 @@ public class ScoreCubeBehaviour : MonoBehaviour
 		_disabledFaces.Push(_enabledFaces.Pop());
 		_disabledFaces.Peek().GetComponent<MeshRenderer>().enabled = false;
 	}
+	
+	public void ChangeColor(Color newColor)
+	{
+		MeshRenderer[] mr = gameObject.GetComponentsInChildren<MeshRenderer>();
+		print(mr.Length);
+		foreach(MeshRenderer m in mr)
+			m.materials[0].color = newColor;
+	}
 }
