@@ -8,6 +8,7 @@ public class ElevatorManager
 	private float _speed = 0f; //units per sec
 	private bool _atEnd = false;
 	private bool _deactivateCurrent = true;
+	private GameObject _previousElevatorGO;
 	
 	public ElevatorManager(ElevatorData data)
 	{
@@ -49,6 +50,7 @@ public class ElevatorManager
 			return;
 		}
 
+		_previousElevatorGO = _currentElevatorGO;
 		_currentElevatorGO = elevatorGO;
 
 		//setup color info
@@ -70,10 +72,10 @@ public class ElevatorManager
 	{
 		if(!_deactivateCurrent)
 		{
-			Debug.Log("Deactiving current elevator");
-			_currentElevatorGO.GetComponent<Collider>().enabled = false;
-			_currentElevatorGO.GetComponent<MeshRenderer>().enabled = false;
-			_currentElevatorGO.transform.position = _currentElevatorGO.GetComponent<ElevatorBehaviour>().StartPosition;
+			Debug.Log("Deactiving previous elevator");
+			_previousElevatorGO.GetComponent<Collider>().enabled = false;
+			_previousElevatorGO.GetComponent<MeshRenderer>().enabled = false;
+			_previousElevatorGO.transform.position = _previousElevatorGO.GetComponent<ElevatorBehaviour>().StartPosition;
 			_deactivateCurrent = true;
 			_atEnd = false;
 		}

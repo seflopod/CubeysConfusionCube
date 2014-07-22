@@ -34,6 +34,7 @@ public class GameManager : Singleton<GameManager>
 	private bool _playingInit = false;
 	private float _elevatorEndTimeout = 0.5f;
 	private float _elevatorEndTimer = 0.0f;
+	private ElevatorBehaviour _currentElevator = null;
 
 	#endregion
 
@@ -112,8 +113,9 @@ public class GameManager : Singleton<GameManager>
 	private void setupMaze()
 	{
 		_maze.Init(mazeData, mazeCellData);
-		_elevator = new ElevatorManager(elevatorData);
-		_elevator.ElevatorColor = _maze.SpawnPickups();
+		//_elevator = new ElevatorManager(elevatorData);
+		//_elevator.ElevatorColor = _maze.SpawnPickups();
+		ElevatorColor = _maze.SpawnPickups();
 	}
 	
 	private void setupPlayer()
@@ -152,13 +154,18 @@ public class GameManager : Singleton<GameManager>
 	private void playingUpdate()
 	{
 		checkAndHandleInputs();
+		if(_player.IsOnElevator && !ElevatorBehaviour.IsAtEnd)
+		{
+			_player.MoveUp(elevatorData.defaultSpeed);
+		}
+		/*
 		if(_elevator.IsMovingUp)
 		{
 			_elevator.MoveUp();
 			_player.MoveUp(_elevator.Speed);
-		}
+		}*/
 
-		if(_elevator.IsAtEnd)
+		/*if(_elevator.IsAtEnd)
 		{
 			//Debug.Log("Counting elevator as at end");
 			_elevatorEndTimer += Time.deltaTime;
@@ -168,7 +175,7 @@ public class GameManager : Singleton<GameManager>
 				_elevator.DeactivateElevator();
 				_elevatorEndTimer = 0f;
 			}
-		}
+		}*/
 	}
 	
 	#region input_handling
@@ -243,7 +250,8 @@ public class GameManager : Singleton<GameManager>
 			_maze.CanDoPickup = false;
 			AudioSource.PlayClipAtPoint(c.gameObject.audio.clip, c.gameObject.transform.position);
 			_player.AddScore(_maze.RemovePickups(c.gameObject));
-			_elevator.ElevatorColor = _maze.SpawnPickups();
+			//_elevator.ElevatorColor = _maze.SpawnPickups();
+			ElevatorColor = _maze.SpawnPickups();
 			_maze.CanDoPickup = true;
 		}
 		else if(c.gameObject.CompareTag("EndPickup"))
@@ -252,18 +260,19 @@ public class GameManager : Singleton<GameManager>
 		}
 	}
 
-	public void ElevatorTrigger(GameObject elevatorGO, bool enter)
+	public void ElevatorTrigger(ElevatorBehaviour elevator, bool enter)
 	{
 		if(enter)
 		{
 			Debug.Log("Entered elevator");
-			_elevator.ActivateElevator(elevatorGO);
+			//_elevator.ActivateElevator(elevatorGO);
 			_player.IsOnElevator = true;
+			_currentElevator = elevator;
 		}
 		else
 		{
 			Debug.Log("Exited elevator");
-			_elevator.DeactivateElevator();
+			//_elevator.DeactivateElevator();
 			_elevatorEndTimer = 0f;
 			_player.IsOnElevator = false;
 		}
@@ -272,11 +281,12 @@ public class GameManager : Singleton<GameManager>
 	
 	public void MoveElevator()
 	{
-		if(_elevator.IsMovingUp)
+		/*if(_elevator.IsMovingUp)
 		{
 			_elevator.MoveUp();
 			_player.MoveUp(_elevator.Speed);
-		}
+		}*/
+
 	}
 	
 	public void ShowEnd()
@@ -285,4 +295,12 @@ public class GameManager : Singleton<GameManager>
 	}
 	
 	public GameStates State	{ get { return _state; } }
+
+	public Color ElevatorColor { get; private set; }
+
+	/*public ElevatorBehaviour CurrentElevator
+	{
+		get { return _currentElevator; }
+		set { _currentElevator = value; }
+	}*/
 }
