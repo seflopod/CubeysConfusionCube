@@ -12,12 +12,12 @@ public class ScoreCubeBehaviour : MonoBehaviour
 		_enabledFaces = new Stack<GameObject>();
 		_disabledFaces = new Stack<GameObject>();
 		
-		_disabledFaces.Push (transform.FindChild("F0_Top").gameObject);
-		_disabledFaces.Push (transform.FindChild("F1_Back").gameObject);
-		_disabledFaces.Push (transform.FindChild("F2_Right").gameObject);
-		_disabledFaces.Push (transform.FindChild("F3_Front").gameObject);
-		_disabledFaces.Push (transform.FindChild("F4_Left").gameObject);
-		_disabledFaces.Push (transform.FindChild("F5_Bottom").gameObject);
+		_disabledFaces.Push(transform.FindChild("F0_Top").gameObject);
+		_disabledFaces.Push(transform.FindChild("F1_Back").gameObject);
+		_disabledFaces.Push(transform.FindChild("F2_Right").gameObject);
+		_disabledFaces.Push(transform.FindChild("F3_Front").gameObject);
+		_disabledFaces.Push(transform.FindChild("F4_Left").gameObject);
+		_disabledFaces.Push(transform.FindChild("F5_Bottom").gameObject);
 	}
 	
 	public void AddOne()
@@ -35,8 +35,10 @@ public class ScoreCubeBehaviour : MonoBehaviour
 	public void ChangeColor(Color newColor)
 	{
 		MeshRenderer[] mr = gameObject.GetComponentsInChildren<MeshRenderer>();
-		print(mr.Length);
-		foreach(MeshRenderer m in mr)
+		for(int i=0;i<mr.Length;++i)
+		{
+			MeshRenderer m = mr[i];
 			m.materials[0].color = newColor;
+		}
 	}
 }

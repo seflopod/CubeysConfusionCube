@@ -38,10 +38,10 @@ public class ScoreCubesBehaviour : MonoBehaviour
 	
 	public void TurnOnExitSign()
 	{
-		//not very scalable
-		print ("Turning on");
-		Color green = new Color(0.0f, 192.0f/255.0f, 1.0f/255.0f);
+		Color green = new Color(0.0f, 0.75f, 0.0f);
 		for(int i=0;i<3;++i)
+		{
 			_cubes[i].ChangeColor(green);
+		}
 	}
 }

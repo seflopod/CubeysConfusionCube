@@ -11,6 +11,12 @@ public enum GameStates
 
 public class GameManager : Singleton<GameManager>
 {
+#if UNITY_EDITOR
+	public static readonly bool IN_EDITOR = true;
+#else
+	public static readonly bool IN_EDITOR = false;
+#endif
+
 	#region public_fields
 	public PlayerData playerData;
 	public MazeData mazeData;
@@ -190,6 +196,21 @@ public class GameManager : Singleton<GameManager>
 			case GameStates.Playing:
 				playingWASD((vert>0), (vert<0), (horiz>0), (horiz<0));
 				playingMouse(mouseX, mouseY);
+				if(IN_EDITOR)
+				{
+					if(Input.GetKeyDown(KeyCode.Alpha1))
+					{
+						_player.AddScore(Color.red);
+					}
+					else if(Input.GetKeyDown(KeyCode.Alpha2))
+					{
+						_player.AddScore(new Color(1f, 1f, 0f));
+					}
+					else if(Input.GetKeyDown(KeyCode.Alpha3))
+					{
+						_player.AddScore(Color.blue);
+					}
+				}
 				break;
 			case GameStates.GameOver:
 				break;
