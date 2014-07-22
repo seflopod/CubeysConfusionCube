@@ -33,7 +33,7 @@ public class PickupBehaviour : MonoBehaviour
 		else
 		{
 			_light.intensity-=_dIdT*Time.deltaTime;
-			_incI = (_light.intensity > lightIntensityMin);
+			_incI = (_light.intensity <= lightIntensityMin);
 		}
 	}
 	

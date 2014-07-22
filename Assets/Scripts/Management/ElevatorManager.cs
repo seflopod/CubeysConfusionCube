@@ -2,72 +2,90 @@ using UnityEngine;
 
 public class ElevatorManager
 {
-	private bool _moveUp;
-	private bool _die;
-	private GameObject _elevatorGameObject;
-	private GameObject _elevatorPrefab;
-	private float _speed; //units per sec
+	private GameObject _currentElevatorGO;
 	private ElevatorData _data;
+	private bool _moveUp = false;
+	private float _speed = 0f; //units per sec
+	private bool _atEnd = false;
+	private bool _deactivateCurrent = true;
 	
 	public ElevatorManager(ElevatorData data)
 	{
 		_data = data;
-		_elevatorPrefab = data.prefab;
-		_moveUp = false;
-		_die = true;
-		_speed = 0.0f;
+		_speed = _data.defaultSpeed;
 	}
 	
 	public void MoveUp()
 	{
-		_elevatorGameObject.transform.Translate(Vector3.up*_speed*Time.deltaTime);
-		CheckForEnd();
+		if(_currentElevatorGO != null)
+		{
+			_currentElevatorGO.transform.Translate(Vector3.up*_speed*Time.deltaTime);
+			checkForEnd();
+		}
 	}
-	
-	public void SpawnNewElevator(Vector3 position)
+
+	private void checkForEnd()
 	{
-		SpawnNewElevator(position, _data.defaultSpeed);
-	}
-	
-	public void SpawnNewElevator(Vector3 position, float speed)
-	{
-		//If an elevator already exists, we will not spawn a new one
-		if(!_die)
-			return;
-		
-		_elevatorGameObject = (GameObject)GameObject.Instantiate(_elevatorPrefab, position, Quaternion.identity);
-		if(_elevatorGameObject == null)
-			Debug.LogError("Couldn't spawn elevator");
-		
-		//GameObject.FindGameObjectWithTag("Player").transform.parent = _elevatorGameObject.transform;
-		_elevatorGameObject.GetComponent<MeshRenderer>().materials[0].SetColor("_Color", ElevatorColor);
-		_speed = speed;
-		_die = false;
-		_moveUp = true;
-	}
-	
-	private void CheckForEnd()
-	{
-		Ray ray = new Ray(_elevatorGameObject.transform.position, Vector3.up);
-		int mask = 1 << 8; //we only want to hit the maze with the ray
-		if(Physics.Raycast(ray, 8.0f, mask)) //magic
+		Ray ray = new Ray(_currentElevatorGO.transform.position, Vector3.up);
+		int mask = 1 << LayerMask.NameToLayer("Maze");
+		if(Physics.Raycast(ray, 8.0f, mask)) //magic, using 8m b/c each cell is 8x8x8
 		{
 			_moveUp = false;
-			if(!_die)
-			{
-				_die = true;
-				RemoveChild();
-				GameObject.Destroy(_elevatorGameObject, 0.5f);
-			}
+			_atEnd = true;
+		}
+	}
+
+	public void ActivateElevator(GameObject elevatorGO)
+	{
+		//If an elevator alread exists, we will not activate a new one
+		/*if(!_deactivateCurrent)
+		{
+			return;
+		}*/
+
+		if(elevatorGO == null)
+		{
+			Debug.LogError("Null elevator object");
+			return;
+		}
+
+		_currentElevatorGO = elevatorGO;
+
+		//setup color info
+		MeshRenderer mr = _currentElevatorGO.GetComponent<MeshRenderer>();
+		mr.enabled = true;
+		mr.materials[0].SetColor("_Color", ElevatorColor);
+
+		//prepare for movement
+		_speed = _data.defaultSpeed;
+		_moveUp = true;
+		_currentElevatorGO.GetComponent<Collider>().enabled = true;
+
+		//administrative for (de)activating
+		_atEnd = false;
+		_deactivateCurrent = false;
+	}
+
+	public void DeactivateElevator()
+	{
+		if(!_deactivateCurrent)
+		{
+			Debug.Log("Deactiving current elevator");
+			_currentElevatorGO.GetComponent<Collider>().enabled = false;
+			_currentElevatorGO.GetComponent<MeshRenderer>().enabled = false;
+			_currentElevatorGO.transform.position = _currentElevatorGO.GetComponent<ElevatorBehaviour>().StartPosition;
+			_deactivateCurrent = true;
+			_atEnd = false;
 		}
 	}
 	
-	public void RemoveChild()
-	{
-		if(_elevatorGameObject.transform.childCount > 0)
-			_elevatorGameObject.transform.GetChild(0).parent = null;
-	}
 	public bool IsMovingUp { get { return _moveUp; } }
+	
 	public Color ElevatorColor { get; set; }
+	
 	public float Speed { get { return _speed; } }
+
+	public bool IsAtEnd { get { return _atEnd; } }
+
+	public bool IsDeactivating { get { return _deactivateCurrent; } }
 }

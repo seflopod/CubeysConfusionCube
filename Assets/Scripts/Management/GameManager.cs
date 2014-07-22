@@ -1,140 +1,223 @@
 using UnityEngine;
-using System.Collections;
 
 public enum GameStates
 {
-	MainMenu = 0x01,
-	Playing = 0x02,
-	GameOver = 0x04
+	Preload,
+	Setup,
+	MainMenu,
+	Playing,
+	GameOver
 };
 
-public class GameManager
+public class GameManager : Singleton<GameManager>
 {
-	private static GameManager _instance = null;
-	
-	public static GameManager Instance
+	#region public_fields
+	public PlayerData playerData;
+	public MazeData mazeData;
+	public MazeCellData mazeCellData;
+	public ElevatorData elevatorData;
+	public GUISkin skin;
+	#endregion
+
+	#region private_fields
+	private GameStates _state = GameStates.Preload;
+	private PlayerBehaviour _player;
+	private MazeManager _maze;
+	private ElevatorManager _elevator;
+	private bool _isWeb = false;
+	private bool _playingInit = false;
+	private float _elevatorEndTimeout = 0.5f;
+	private float _elevatorEndTimer = 0.0f;
+
+	#endregion
+
+	#region monobehaviour
+	protected new void Awake()
 	{
-		get
+		base.Awake();
+		DontDestroyOnLoad(this);
+#if UNITY_WEBPLAYER && !UNITY_EDITOR
+		_isWeb = true;
+#endif
+	}
+	
+	private void Start()
+	{
+		_maze = new MazeManager();
+	}
+	
+	private void Update()
+	{
+		switch(_state)
 		{
-			if(GameManager._instance == null)
-				GameManager._instance = new GameManager();
-			return GameManager._instance;
+		case GameStates.Preload:
+			preloadUpdate();
+			break;
+		case GameStates.Setup:
+			if(Time.timeSinceLevelLoad >= 2f)
+			{
+				finishSetup();
+			}
+			break;
+		case GameStates.MainMenu:
+			break;
+		case GameStates.Playing:
+			playingUpdate();
+			break;
+		case GameStates.GameOver:
+			GameObject.FindGameObjectWithTag("WinScreenGUI").GetComponent<GUITexture>().enabled = true;
+			break;
+		default:
+			break;
 		}
 	}
 	
-	public static GameStates State { get { return GameManager.Instance._state; } }
-	
-	private GameStates _state;
-	
-	//Other managers
-	private PlayerManager _player;
-	private MazeManager _maze;
-	private ElevatorManager _elevator;
-	
-	private GameObject _inputGO;
-	
-	//NOTE: this is private
-	private GameManager()
+	private void OnLevelWasLoaded()
 	{
-		_player = null;
-		_maze = null;
-		_elevator = null;
-		Screen.showCursor = false;
+		if(_state == GameStates.Setup && !_playingInit)
+		{
+			setupMaze();
+			_playingInit = true;
+		}
 	}
-	
-	public void Init(PlayerData pData, MazeData mData, MazeCellData mcData, ElevatorData eleData)
+
+	private void OnGUI()
 	{
-		_inputGO = GameObject.Find("_Input");
-		_inputGO.SetActive(false);
-		_state = GameStates.Playing; //Testing only
-		
-		_maze = new MazeManager();
-		_maze.Init(mData, mcData);
-		
-		_player = new PlayerManager();
-		_player.Init(pData, _maze.EndPosition);
-		
-		_elevator = new ElevatorManager(eleData);
+		if(skin != null && GUI.skin != skin)
+		{
+			GUI.skin = skin;
+		}
+		switch(_state)
+		{
+		case GameStates.Playing:
+			break;
+		case GameStates.GameOver:
+			break;
+		default:
+			GUI.backgroundColor = Color.black;
+			GUILayout.BeginArea(new Rect(Screen.width/6f, Screen.height/6f, 2*Screen.width/3, 2*Screen.height/3));
+			GUILayout.Box("Fried Kalamari Studios\npresents\n\nCubey's Confusion Cube", skin.GetStyle("title"), GUILayout.ExpandWidth(true));
+			GUILayout.EndArea();
+			break;
+		}
+	}
+	#endregion
+	#region setups
+	private void setupMaze()
+	{
+		_maze.Init(mazeData, mazeCellData);
+		_elevator = new ElevatorManager(elevatorData);
 		_elevator.ElevatorColor = _maze.SpawnPickups();
 	}
 	
-	public bool FinishInit()
+	private void setupPlayer()
 	{
-		if(_player == null)
-			return false;
-		
-		GameObject.DestroyImmediate(GameObject.Find("SplashScreen"));
-		_player.Activate();
-		
-		//turn input on after all init to avoid null stuffs
-		_inputGO.SetActive(true);
+		GameObject tmpGO = GameObject.Instantiate(playerData.playerPrefab,
+		                                          _maze.EndPosition,
+		                                          Quaternion.identity)
+													as GameObject;
+		gameObject.GetComponent<AudioListener>().enabled = false;
+		_player = tmpGO.GetComponent<PlayerBehaviour>();
+		_player.Init(playerData, _maze.EndPosition);
+	}
+	
+	private void finishSetup()
+	{
+		setupPlayer();
 		_maze.CanDoPickup = true;
-		return true;
-	}
-	
-	#region wasd_handle
-	public void HandleKeyboard(float horiz, float vert)
-	{
-		switch(_state)
-		{
-		case GameStates.MainMenu:
-			break;
-		case GameStates.Playing:
-			PlayingWASD((vert>0), (vert<0), (horiz>0), (horiz<0));
-			break;
-		case GameStates.GameOver:
-			break;
-		default:
-			break;
-		}
-	}
-	
-	private void PlayingWASD(bool fwd, bool back, bool right, bool left)
-	{
-		_player.Move(fwd, back, right, left);
+		_state = GameStates.Playing;
 	}
 	#endregion
-	
-	#region mouse_handle
-	public void HandleMouse(float x, float y)
+
+	private void preloadUpdate()
 	{
-		switch(_state)
+		if(!Application.isLoadingLevel && ((_isWeb && Application.CanStreamedLevelBeLoaded(1)) || !_isWeb))
 		{
-		case GameStates.MainMenu:
-			break;
-		case GameStates.Playing:
-			PlayingMouse(x,y);
-			break;
-		case GameStates.GameOver:
-			break;
-		default:
-			break;
+			Application.LoadLevel(1);
+			_state = GameStates.Setup;
+		}
+		else if(!Application.isLoadingLevel && _isWeb)
+		{
+			int pct = Mathf.FloorToInt(100*Application.GetStreamProgressForLevel(1));
+			//update something on a gui?
 		}
 	}
 	
-	private void PlayingMouse(float x, float y)
+	private void playingUpdate()
 	{
+		checkAndHandleInputs();
+		if(_elevator.IsMovingUp)
+		{
+			_elevator.MoveUp();
+			_player.MoveUp(_elevator.Speed);
+		}
+
+		if(_elevator.IsAtEnd)
+		{
+			//Debug.Log("Counting elevator as at end");
+			_elevatorEndTimer += Time.deltaTime;
+			if(_elevatorEndTimer >= _elevatorEndTimeout)
+			{
+				//Debug.Log("Hit time limit, killing current elevator");
+				_elevator.DeactivateElevator();
+				_elevatorEndTimer = 0f;
+			}
+		}
+	}
+	
+	#region input_handling
+	private void checkAndHandleInputs()
+	{
+		if(Input.GetKey(KeyCode.Escape))
+		{
+			Application.Quit();
+		}
+		else
+		{
+			float horiz = Input.GetAxis("Horizontal");
+			float vert = Input.GetAxis("Vertical");
+			float mouseX = Input.GetAxis("Mouse X");
+			float mouseY = Input.GetAxis("Mouse Y");
+			
+			switch(_state)
+			{
+			case GameStates.Preload:
+				break;
+			case GameStates.Setup:
+				break;
+			case GameStates.MainMenu:
+				break;
+			case GameStates.Playing:
+				playingWASD((vert>0), (vert<0), (horiz>0), (horiz<0));
+				playingMouse(mouseX, mouseY);
+				break;
+			case GameStates.GameOver:
+				break;
+			default:
+				break;
+			}
+		}
+	}
+	
+	private void playingWASD(bool fwd, bool back, bool right, bool left)
+	{
+		_player.MoveOnGround(fwd, back, right, left);
+	}
+	
+	private void playingMouse(float x, float y)
+	{
+		//Rotation around y-axis is dependent on horizontal movement
 		_player.RotateY(x);
+
+		//Rotation around x-axis is dependent on vetical movement
 		_player.RotateX(y);
 	}
 	#endregion
 	
-	#region other_keyboard
-	public void HandleEscape(bool esc)
-	{
-		if(esc)
-			Application.Quit();
-	}
-	#endregion
-	
 	#region collision_handle
-	public void PlayerCollideHandle(ControllerColliderHit c)
+	public void PlayerPickupCollision(ControllerColliderHit c)
 	{
-		//since this should only ever happen when playing, no need to switch
-		
-		//filter type of hit before passing to PlayerManager
-		//plus we need to do some things here
-		if(_maze.CanDoPickup && c.gameObject.tag.Equals("Pickup",System.StringComparison.OrdinalIgnoreCase))
+		if(_maze.CanDoPickup && c.gameObject.CompareTag("Pickup"))
 		{
 			_maze.CanDoPickup = false;
 			AudioSource.PlayClipAtPoint(c.gameObject.audio.clip, c.gameObject.transform.position);
@@ -142,18 +225,27 @@ public class GameManager
 			_elevator.ElevatorColor = _maze.SpawnPickups();
 			_maze.CanDoPickup = true;
 		}
-		else if(c.gameObject.tag.Equals("EndPickup",System.StringComparison.OrdinalIgnoreCase))
+		else if(c.gameObject.CompareTag("EndPickup"))
 		{
-			GameObject.FindGameObjectWithTag("WinScreenGUI").GetComponent<GUITexture>().enabled = true;
+			_state = GameStates.GameOver;
 		}
 	}
-	
-	public void ElevatorTrigger(Vector3 position, bool enter)
+
+	public void ElevatorTrigger(GameObject elevatorGO, bool enter)
 	{
 		if(enter)
-			_elevator.SpawnNewElevator(position);
+		{
+			Debug.Log("Entered elevator");
+			_elevator.ActivateElevator(elevatorGO);
+			_player.IsOnElevator = true;
+		}
 		else
-			_elevator.RemoveChild();
+		{
+			Debug.Log("Exited elevator");
+			_elevator.DeactivateElevator();
+			_elevatorEndTimer = 0f;
+			_player.IsOnElevator = false;
+		}
 	}
 	#endregion
 	
@@ -170,4 +262,6 @@ public class GameManager
 	{
 		_maze.ShowEnd();
 	}
+	
+	public GameStates State	{ get { return _state; } }
 }

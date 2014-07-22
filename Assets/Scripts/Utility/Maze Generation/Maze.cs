@@ -6,13 +6,8 @@ public class Maze
 	
 	private MazeCell[][][] _cells;
 	
-	public Maze()
-	{
-		_rows = 0;
-		_cols = 0;
-		_layers = 0;
-		_cells = null;
-	}
+	public Maze() : this(0, 0, 0, null)
+	{}
 	
 	public Maze(int rows, int cols, int layers, MazeCellData mcData)
 	{
@@ -27,7 +22,9 @@ public class Maze
 			{
 				_cells[i][j] = new MazeCell[_layers];
 				for(int k=0;k<_layers;++k)
+				{
 					_cells[i][j][k] = new MazeCell(mcData, i, j, k);
+				}
 			}
 		}
 	}
