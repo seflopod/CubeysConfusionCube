@@ -1,0 +1,66 @@
+Initialize engine version: 4.5.2f1 (9abb1b59b47c)
+GfxDevice: creating device client; threaded=1
+Direct3D:
+    Version:  Direct3D 9.0c [aticfx32.dll 8.17.10.1151]
+    Renderer: ATI FirePro V5800 (FireGL V)
+    Vendor:   ATI
+    VRAM:     1009 MB (via DXGI)
+    Caps:     Shader=30 DepthRT=1 NativeDepth=1 NativeShadow=1 DF16=1 INTZ=1 RAWZ=0 NULL=1 RESZ=1 SlowINTZ=1
+Begin MonoManager ReloadAssembly
+Platform assembly: E:\Documents\Games\Cubeys Confusion Cube\pc_build\cubey_pc_build_Data\Managed\UnityEngine.dll (this message is harmless)
+Loading E:\Documents\Games\Cubeys Confusion Cube\pc_build\cubey_pc_build_Data\Managed\UnityEngine.dll into Unity Child Domain
+Platform assembly: E:\Documents\Games\Cubeys Confusion Cube\pc_build\cubey_pc_build_Data\Managed\Assembly-CSharp.dll (this message is harmless)
+Loading E:\Documents\Games\Cubeys Confusion Cube\pc_build\cubey_pc_build_Data\Managed\Assembly-CSharp.dll into Unity Child Domain
+- Completed reload, in  0.171 seconds
+desktop: 1680x1050 60Hz; virtual: 1680x1050 at 0,0
+<RI> Initializing input.
+<RI> Input initialized.
+Platform assembly: E:\Documents\Games\Cubeys Confusion Cube\pc_build\cubey_pc_build_Data\Managed\System.dll (this message is harmless)
+UnloadTime: 2.197102 ms
+Unloading 4 Unused Serialized files (Serialized files now loaded: 0 / Dirty serialized files: 0)
+
+Unloading 2 unused Assets to reduce memory usage. Loaded Objects now: 16860.
+Total: 3.857618 ms (FindLiveObjects: 0.774662 ms CreateObjectMapping: 0.532914 ms MarkObjects: 1.898590 ms  DeleteObjects: 0.071455 ms)
+
+Not all pickups are being deleted.  Attempting to remove now
+ 
+(Filename: C:/BuildAgent/work/d63dfc6385190b60/artifacts/StandalonePlayerGenerated/UnityEngineDebug.cpp Line: 49)
+
+Not all pickups are being deleted.  Attempting to remove now
+ 
+(Filename: C:/BuildAgent/work/d63dfc6385190b60/artifacts/StandalonePlayerGenerated/UnityEngineDebug.cpp Line: 49)
+
+Not all pickups are being deleted.  Attempting to remove now
+ 
+(Filename: C:/BuildAgent/work/d63dfc6385190b60/artifacts/StandalonePlayerGenerated/UnityEngineDebug.cpp Line: 49)
+
+Not all pickups are being deleted.  Attempting to remove now
+ 
+(Filename: C:/BuildAgent/work/d63dfc6385190b60/artifacts/StandalonePlayerGenerated/UnityEngineDebug.cpp Line: 49)
+
+Not all pickups are being deleted.  Attempting to remove now
+ 
+(Filename: C:/BuildAgent/work/d63dfc6385190b60/artifacts/StandalonePlayerGenerated/UnityEngineDebug.cpp Line: 49)
+
+HandleD3DDeviceLost
+  HandleD3DDeviceLost: needs reset, doing it
+FullResetD3DDevice
+ResetD3DDevice
+dev->Reset
+D3Dwindow device not lost anymore
+HandleD3DDeviceLost
+  HandleD3DDeviceLost: still lost
+Skipped frame because GfxDevice is in invalid state (device lost)
+ 
+(Filename:  Line: 1617)
+
+HandleD3DDeviceLost
+  HandleD3DDeviceLost: needs reset, doing it
+FullResetD3DDevice
+ResetD3DDevice
+dev->Reset
+D3Dwindow device not lost anymore
+Not all pickups are being deleted.  Attempting to remove now
+ 
+(Filename: C:/BuildAgent/work/d63dfc6385190b60/artifacts/StandalonePlayerGenerated/UnityEngineDebug.cpp Line: 49)
+

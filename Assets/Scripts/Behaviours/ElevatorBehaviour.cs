@@ -8,12 +8,17 @@ public class ElevatorBehaviour : MonoBehaviour
 	private bool _deactivate = true;
 	private float _elevatorEndTimeout = 0.5f;
 	private float _elevatorEndTimer = 0.0f;
+	private PlayerBehaviour _player = null;
 
-
-	private void Start()
+	#region monobehaviour
+	private void Awake()
 	{
 		//I still think this should be set elsewhere, but for now we'll try this
 		StartPosition = transform.position;
+	}
+
+	private void Start()
+	{
 		Speed = GameManager.Instance.elevatorData.defaultSpeed;
 	}
 
@@ -28,12 +33,40 @@ public class ElevatorBehaviour : MonoBehaviour
 			_elevatorEndTimer+=Time.deltaTime;
 			if(_elevatorEndTimer >= _elevatorEndTimeout)
 			{
-				Debug.Log("Timed out");
-				GameManager.Instance.ElevatorTrigger(this, false);
+				//Debug.Log("Timed out");
 				DeactivateElevator();
 			}
 		}
 	}
+
+	private void LateUpdate()
+	{
+		if(!renderer.enabled && transform.position != StartPosition)
+		{
+			transform.position = StartPosition;
+		}
+	}
+
+	private void OnTriggerEnter(Collider c)
+	{
+		_player = c.gameObject.GetComponent<PlayerBehaviour>();
+		if(_player != null)
+		{
+			//Debug.Log("Player triggered");
+			ActivateElevator();
+		}
+	}
+	
+	private void OnTriggerExit(Collider c)
+	{
+		_player = c.gameObject.GetComponent<PlayerBehaviour>();
+		if(_player != null)
+		{
+			//Debug.Log("Player untriggered");
+			DeactivateElevator();
+		}
+	}
+	#endregion
 
 	#region movement
 	public void MoveUp()
@@ -57,21 +90,25 @@ public class ElevatorBehaviour : MonoBehaviour
 	#region activation
 	public void ActivateElevator()
 	{
-		//If an elevator alread exists, we will not activate a new one
-		/*if(!_deactivateCurrent)
+		//Don't try activating more than once
+		if(!_deactivate)
 		{
 			return;
-		}*/
+		}
 
 		//setup color info
 		MeshRenderer mr = gameObject.GetComponent<MeshRenderer>();
-		mr.enabled = true;
-		mr.materials[0].SetColor("_Color", GameManager.Instance.ElevatorColor);
+		renderer.enabled = true;
+		renderer.materials[0].SetColor("_Color", GameManager.Instance.ElevatorColor);
 		
 		//prepare for movement
 		Speed = GameManager.Instance.elevatorData.defaultSpeed;
 		_moveUp = true;
 		gameObject.GetComponent<Collider>().enabled = true;
+		if(_player != null)
+		{
+			_player.IsOnElevator = true;
+		}
 		
 		//administrative for (de)activating
 		_atEnd = false;
@@ -80,39 +117,21 @@ public class ElevatorBehaviour : MonoBehaviour
 
 	public void DeactivateElevator()
 	{
-		if(!_deactivate)
+		//Debug.Log("Deactiving elevator");
+		_deactivate = true;
+		transform.position = StartPosition;
+		gameObject.GetComponent<Collider>().enabled = false;
+		renderer.enabled = false;
+		_atEnd = false;
+		_elevatorEndTimer = 0f;
+		if(_player != null)
 		{
-			Debug.Log("Deactiving previous elevator");
-			gameObject.GetComponent<Collider>().enabled = false;
-			gameObject.GetComponent<MeshRenderer>().enabled = false;
-			gameObject.transform.position = StartPosition;
-			_deactivate = true;
-			_atEnd = false;
-			_elevatorEndTimer = 0f;
+			_player.IsOnElevator = false;
+			_player = null;
 		}
 	}
 	#endregion
-	private void OnTriggerEnter(Collider c)
-	{
-		Debug.Log("Something triggered");
-		if(c.CompareTag("Player"))
-		{
-			Debug.Log("Player triggered");
-			GameManager.Instance.ElevatorTrigger(this, true);
-			ActivateElevator();
-		}
-	}
-	
-	private void OnTriggerExit(Collider c)
-	{
-		Debug.Log("Something untriggered");
-		if(c.CompareTag("Player"))
-		{
-			Debug.Log("Player untriggered");
-			GameManager.Instance.ElevatorTrigger(this, false);
-			DeactivateElevator();
-		}
-	}
+
 
 	public static bool IsAtEnd { get { return _atEnd; } }
 	public Vector3 StartPosition { get; private set; }

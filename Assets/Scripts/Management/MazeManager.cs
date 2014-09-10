@@ -43,19 +43,41 @@ public class MazeManager
 		_mazeGameObject = GameObject.FindGameObjectWithTag("MazeParent");
 	}
 	
-	private void SelectNewSpawnGroup()
+	private void selectNewSpawnGroup()
 	{
 		_prvSG = _curSG;
 		while(_curSG == _prvSG || _spawnGroups[_curSG].spawnPoints.Count == 0)
 		{
 			_curSG = Random.Range(0, _spawnGroups.Count);
 		}
-		
-		_prvPO = _curPO;
-		while(_curPO == _prvPO)
+	}
+
+	private bool selectNewPickups()
+	{
+		int[] scores = GameManager.Instance.Score;
+		if(scores[0] == 6 && scores[1] == 6 && scores[2] == 6)
 		{
-			_curPO = Random.Range(0, _spawnGroups.Count);
+			return false;
 		}
+
+		float totalWeight = 18f - scores[0] - scores[1] - scores[2];
+
+		float roll = Random.value;
+		_prvPO = _curPO;
+		if(roll <= (6-scores[0])/totalWeight)
+		{
+			_curPO = 0;
+		}
+		else if(roll <= (6-scores[0])/totalWeight + (6-scores[1])/totalWeight)
+		{
+			_curPO = 1;
+		}
+		else
+		{
+			_curPO = 2;
+		}
+
+		return true;
 	}
 	
 	private void SpawnNewPickups()
@@ -79,13 +101,16 @@ public class MazeManager
 				i--;
 			}
 		}
-		for(int i=0;i<pointsIdx.Length;++i)
+		if(selectNewPickups())
 		{
-			GameObject tmpGO = ((GameObject) GameObject.Instantiate(
-													_data.pickups[_curPO],
-													points[i],
-													Quaternion.identity));
-			_pickups.Add(tmpGO.GetComponent<PickupBehaviour>());
+			for(int i=0;i<pointsIdx.Length;++i)
+			{
+				GameObject tmpGO = ((GameObject) GameObject.Instantiate(
+														_data.pickups[_curPO],
+														points[i],
+														Quaternion.identity));
+				_pickups.Add(tmpGO.GetComponent<PickupBehaviour>());
+			}
 		}
 	}
 	
@@ -96,11 +121,20 @@ public class MazeManager
 		{
 			Debug.LogWarning("Not all pickups are being deleted.  Attempting to remove now");
 			for(int i=0;i<tmp.Length;++i)
+			{
 				GameObject.Destroy(tmp[i]);
+			}
 		}
-		SelectNewSpawnGroup();
+		selectNewSpawnGroup();
 		SpawnNewPickups();
-		return _pickups[0].gameObject.GetComponentInChildren<MeshRenderer>().materials[0].color;
+		if(_pickups.Count > 0)
+		{
+			return _pickups[0].gameObject.GetComponentInChildren<MeshRenderer>().materials[0].color;
+		}
+		else
+		{
+			return new Color(0f, 0.7f, 0f);
+		}
 	}
 	
 	public Color RemovePickups(GameObject toRemove)
@@ -133,9 +167,6 @@ public class MazeManager
 	
 	public void ShowEnd()
 	{
-		//I just quit caring about doing this right.
-		//right = generic in this case.  I don't know that I've been doing
-		//it right this whole time.
 		GameObject.Instantiate(_data.endPickupPrefab, EndPosition, Quaternion.identity);
 	}
 	

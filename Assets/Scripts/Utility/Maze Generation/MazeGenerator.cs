@@ -53,13 +53,14 @@ public class MazeGenerator
 					GameObject cellGO = mazeGO.transform.FindChild(string.Format(FIND_CELL_STR,l,r,c)).gameObject;
 					int n = 0;
 					bool needElevator = false;
+					bool useScoreMat = false;
 
 					GameObject tmpGO = cellGO.transform.FindChild("Back").gameObject;
 					tmpGO.SetActive(cell.IsWallEnabled(MazeCell.WallSides.Back));
 					if(tmpGO.activeSelf)
 					{
 						++n;
-						tmpGO.GetComponent<MeshRenderer>().materials = _mcData.defaultMaterials;
+						tmpGO.GetComponent<MeshRenderer>().material = _mcData.defaultMaterial;
 					}
 
 					tmpGO = cellGO.transform.FindChild("Front").gameObject;
@@ -67,7 +68,7 @@ public class MazeGenerator
 					if(tmpGO.activeSelf)
 					{
 						++n;
-						tmpGO.GetComponent<MeshRenderer>().materials = _mcData.defaultMaterials;
+						tmpGO.GetComponent<MeshRenderer>().material = _mcData.defaultMaterial;
 					}
 
 					tmpGO = cellGO.transform.FindChild("Right").gameObject;
@@ -75,7 +76,20 @@ public class MazeGenerator
 					if(tmpGO.activeSelf)
 					{
 						++n;
-						tmpGO.GetComponent<MeshRenderer>().materials = _mcData.defaultMaterials;
+						tmpGO.GetComponent<MeshRenderer>().material = _mcData.defaultMaterial;
+
+						useScoreMat = (Random.Range(0,100) > 89);
+						if(useScoreMat)
+						{
+							GameObject scoreGO = GameObject.CreatePrimitive(PrimitiveType.Quad);
+							scoreGO.GetComponent<Collider>().enabled = false;
+							scoreGO.transform.parent = tmpGO.transform;
+							scoreGO.transform.localRotation = Quaternion.Euler(90*Vector3.up);
+							scoreGO.transform.localScale = Vector3.one;
+							scoreGO.transform.localPosition = -0.71f * Vector3.right;
+							scoreGO.GetComponent<MeshRenderer>().material = _mcData.scoreMaterial;
+							scoreGO.GetComponent<MeshRenderer>().receiveShadows = false;
+						}
 					}
 
 					tmpGO = cellGO.transform.FindChild("Left").gameObject;
@@ -83,7 +97,18 @@ public class MazeGenerator
 					if(tmpGO.activeSelf)
 					{
 						++n;
-						tmpGO.GetComponent<MeshRenderer>().materials = _mcData.defaultMaterials;
+						tmpGO.GetComponent<MeshRenderer>().material = _mcData.defaultMaterial;
+						if(useScoreMat)
+						{
+							GameObject scoreGO = GameObject.CreatePrimitive(PrimitiveType.Quad);
+							scoreGO.GetComponent<Collider>().enabled = false;
+							scoreGO.transform.parent = tmpGO.transform;
+							scoreGO.transform.localRotation = Quaternion.Euler(270*Vector3.up);
+							scoreGO.transform.localScale = Vector3.one;
+							scoreGO.transform.localPosition = 0.71f * Vector3.right;
+							scoreGO.GetComponent<MeshRenderer>().material = _mcData.scoreMaterial;
+							scoreGO.GetComponent<MeshRenderer>().receiveShadows = false;
+						}
 					}
 
 					tmpGO = cellGO.transform.FindChild("Top").gameObject;
@@ -91,7 +116,7 @@ public class MazeGenerator
 					if(tmpGO.activeSelf)
 					{
 						++n;
-						tmpGO.GetComponent<MeshRenderer>().materials = _mcData.defaultMaterials;
+						tmpGO.GetComponent<MeshRenderer>().material = _mcData.defaultMaterial;
 					}
 					else
 					{
@@ -103,11 +128,12 @@ public class MazeGenerator
 					if(tmpGO.activeSelf)
 					{
 						++n;
-						tmpGO.GetComponent<MeshRenderer>().materials = _mcData.defaultMaterials;
+						tmpGO.GetComponent<MeshRenderer>().material = _mcData.defaultMaterial;
 						if(needElevator)
 						{
 							Transform btm = tmpGO.transform;
-							GameObject.Instantiate(_data.elevatorTriggerPrefab, btm.position, Quaternion.identity);
+							GameObject eleGO = (GameObject)GameObject.Instantiate(_data.elevatorTriggerPrefab, btm.position, Quaternion.identity);
+							eleGO.name = "Elevator"+btm.position.ToString();
 						}
 					}
 					
@@ -119,6 +145,7 @@ public class MazeGenerator
 						src.rolloffMode = AudioRolloffMode.Linear;
 						src.maxDistance = 32.0f;
 						src.loop = true;
+						src.volume = 0.4f;
 						src.Play();
 					}
 					cellByWalls[n].Add(cellGO.transform);

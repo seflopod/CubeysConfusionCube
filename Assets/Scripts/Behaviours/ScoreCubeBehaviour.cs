@@ -20,16 +20,18 @@ public class ScoreCubeBehaviour : MonoBehaviour
 		_disabledFaces.Push(transform.FindChild("F5_Bottom").gameObject);
 	}
 	
-	public void AddOne()
+	public int AddOne()
 	{
 		_enabledFaces.Push (_disabledFaces.Pop());
 		_enabledFaces.Peek().GetComponent<MeshRenderer>().enabled = true;
+		return _enabledFaces.Count;
 	}
 	
-	public void SubtractOne()
+	public int SubtractOne()
 	{
 		_disabledFaces.Push(_enabledFaces.Pop());
 		_disabledFaces.Peek().GetComponent<MeshRenderer>().enabled = false;
+		return _enabledFaces.Count;
 	}
 	
 	public void ChangeColor(Color newColor)

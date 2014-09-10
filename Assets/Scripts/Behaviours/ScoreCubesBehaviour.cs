@@ -26,14 +26,14 @@ public class ScoreCubesBehaviour : MonoBehaviour
 		transform.localScale = new Vector3(scale, scale, scale);
 	}
 	
-	public void AddOne(ScoreCubesBehaviour.ScoreCubeColor color)
+	public int AddOne(ScoreCubesBehaviour.ScoreCubeColor color)
 	{
-		_cubes[(int)color].AddOne();
+		return _cubes[(int)color].AddOne();
 	}
 	
-	public void SubtractOne(ScoreCubesBehaviour.ScoreCubeColor color)
+	public int SubtractOne(ScoreCubesBehaviour.ScoreCubeColor color)
 	{
-		_cubes[(int)color].SubtractOne();
+		return _cubes[(int)color].SubtractOne();
 	}
 	
 	public void TurnOnExitSign()

@@ -30,7 +30,7 @@ public class PlayerBehaviour : MonoBehaviour
 	#endregion
 	
 	#region movement
-	public void MoveOnGround(bool moveFwd, bool moveBack, bool moveRight, bool moveLeft)
+	public void MoveOnGround(bool moveFwd, bool moveBack)
 	{
 		Vector3 mvmntVec = Vector3.zero;
 		
@@ -38,11 +38,6 @@ public class PlayerBehaviour : MonoBehaviour
 		{
 			Vector3 relFwd = gameObject.transform.TransformDirection(Vector3.forward);
 			mvmntVec += relFwd * ((moveBack)?-1:1);
-		}
-		if(moveRight || moveLeft)
-		{
-			Vector3 relRight = gameObject.transform.TransformDirection(Vector3.right);
-			mvmntVec += relRight * ((moveLeft)?-1:1);
 		}
 		
 		mvmntVec*=_data.speed;
@@ -107,7 +102,7 @@ public class PlayerBehaviour : MonoBehaviour
 		_scoreDisplay = tmp.GetComponent<ScoreCubesBehaviour>();
 	}
 	
-	public void AddScore(Color c)
+	public bool AddScore(Color c)
 	{
 		Vector3 red = Vector3.right;
 		Vector3 blue = Vector3.forward;
@@ -116,15 +111,15 @@ public class PlayerBehaviour : MonoBehaviour
 		
 		if(cv == red && _redScore++ < 6)
 		{
-			_scoreDisplay.AddOne(ScoreCubesBehaviour.ScoreCubeColor.Red);
+			_redScore = _scoreDisplay.AddOne(ScoreCubesBehaviour.ScoreCubeColor.Red);
 		}
 		else if(cv == yellow && _yellowScore++ < 6)
 		{
-			_scoreDisplay.AddOne(ScoreCubesBehaviour.ScoreCubeColor.Yellow);
+			_yellowScore = _scoreDisplay.AddOne(ScoreCubesBehaviour.ScoreCubeColor.Yellow);
 		}
 		else if(cv == blue && _blueScore++ < 6)
 		{
-			_scoreDisplay.AddOne(ScoreCubesBehaviour.ScoreCubeColor.Blue);
+			_blueScore = _scoreDisplay.AddOne(ScoreCubesBehaviour.ScoreCubeColor.Blue);
 		}
 		
 		if(!_endShown && _redScore>=6 && _yellowScore>=6 && _blueScore>=6)
@@ -133,11 +128,20 @@ public class PlayerBehaviour : MonoBehaviour
 			GameManager.Instance.ShowEnd();
 			_endShown = true;
 		}
+		return _endShown;
 	}
 
 	public bool IsOnElevator
 	{
 		get { return _onElevator; }
 		set { _onElevator = value; }
+	}
+
+	public int[] Score
+	{
+		get
+		{
+			return new int[] { _redScore, _yellowScore, _blueScore };
+		}
 	}
 }

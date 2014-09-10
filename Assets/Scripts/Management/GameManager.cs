@@ -16,6 +16,11 @@ public class GameManager : Singleton<GameManager>
 #else
 	public static readonly bool IN_EDITOR = false;
 #endif
+#if UNITY_WEBPLAYER && !UNITY_EDITOR
+	public static readonly bool IS_WEB = true;
+#else
+	public static readonly bool IS_WEB = false;
+#endif
 
 	#region public_fields
 	public PlayerData playerData;
@@ -29,12 +34,7 @@ public class GameManager : Singleton<GameManager>
 	private GameStates _state = GameStates.Preload;
 	private PlayerBehaviour _player;
 	private MazeManager _maze;
-	private ElevatorManager _elevator;
-	private bool _isWeb = false;
 	private bool _playingInit = false;
-	private float _elevatorEndTimeout = 0.5f;
-	private float _elevatorEndTimer = 0.0f;
-	private ElevatorBehaviour _currentElevator = null;
 
 	#endregion
 
@@ -43,9 +43,6 @@ public class GameManager : Singleton<GameManager>
 	{
 		base.Awake();
 		DontDestroyOnLoad(this);
-#if UNITY_WEBPLAYER && !UNITY_EDITOR
-		_isWeb = true;
-#endif
 	}
 	
 	private void Start()
@@ -103,7 +100,7 @@ public class GameManager : Singleton<GameManager>
 		default:
 			GUI.backgroundColor = Color.black;
 			GUILayout.BeginArea(new Rect(Screen.width/6f, Screen.height/6f, 2*Screen.width/3, 2*Screen.height/3));
-			GUILayout.Box("Fried Kalamari Studios\npresents\n\nCubey's Confusion Cube", skin.GetStyle("title"), GUILayout.ExpandWidth(true));
+			GUILayout.Box("Peter Bartosch\npresents\n\nCubey's Confusion Cube", skin.GetStyle("title"), GUILayout.ExpandWidth(true));
 			GUILayout.EndArea();
 			break;
 		}
@@ -113,8 +110,6 @@ public class GameManager : Singleton<GameManager>
 	private void setupMaze()
 	{
 		_maze.Init(mazeData, mazeCellData);
-		//_elevator = new ElevatorManager(elevatorData);
-		//_elevator.ElevatorColor = _maze.SpawnPickups();
 		ElevatorColor = _maze.SpawnPickups();
 	}
 	
@@ -137,14 +132,20 @@ public class GameManager : Singleton<GameManager>
 	}
 	#endregion
 
+	/* preloadUpdate()
+	 * This is the update method for the Preload GameState.  We only care about making sure levels can be loaded
+	 * if we're using the web player, so check to see if we can do this yet.  As long as we cannot load the level
+	 * do nothing.  Once we can, load it.
+	 * 
+	 */
 	private void preloadUpdate()
 	{
-		if(!Application.isLoadingLevel && ((_isWeb && Application.CanStreamedLevelBeLoaded(1)) || !_isWeb))
+		if(!Application.isLoadingLevel && ((IS_WEB && Application.CanStreamedLevelBeLoaded(1)) || !IS_WEB))
 		{
 			Application.LoadLevel(1);
 			_state = GameStates.Setup;
 		}
-		else if(!Application.isLoadingLevel && _isWeb)
+		else if(!Application.isLoadingLevel && IS_WEB)
 		{
 			int pct = Mathf.FloorToInt(100*Application.GetStreamProgressForLevel(1));
 			//update something on a gui?
@@ -158,24 +159,6 @@ public class GameManager : Singleton<GameManager>
 		{
 			_player.MoveUp(elevatorData.defaultSpeed);
 		}
-		/*
-		if(_elevator.IsMovingUp)
-		{
-			_elevator.MoveUp();
-			_player.MoveUp(_elevator.Speed);
-		}*/
-
-		/*if(_elevator.IsAtEnd)
-		{
-			//Debug.Log("Counting elevator as at end");
-			_elevatorEndTimer += Time.deltaTime;
-			if(_elevatorEndTimer >= _elevatorEndTimeout)
-			{
-				//Debug.Log("Hit time limit, killing current elevator");
-				_elevator.DeactivateElevator();
-				_elevatorEndTimer = 0f;
-			}
-		}*/
 	}
 	
 	#region input_handling
@@ -187,7 +170,6 @@ public class GameManager : Singleton<GameManager>
 		}
 		else
 		{
-			float horiz = Input.GetAxis("Horizontal");
 			float vert = Input.GetAxis("Vertical");
 			float mouseX = Input.GetAxis("Mouse X");
 			float mouseY = Input.GetAxis("Mouse Y");
@@ -201,7 +183,7 @@ public class GameManager : Singleton<GameManager>
 			case GameStates.MainMenu:
 				break;
 			case GameStates.Playing:
-				playingWASD((vert>0), (vert<0), (horiz>0), (horiz<0));
+				playingWASD((vert>0), (vert<0));
 				playingMouse(mouseX, mouseY);
 				if(IN_EDITOR)
 				{
@@ -227,9 +209,9 @@ public class GameManager : Singleton<GameManager>
 		}
 	}
 	
-	private void playingWASD(bool fwd, bool back, bool right, bool left)
+	private void playingWASD(bool fwd, bool back)
 	{
-		_player.MoveOnGround(fwd, back, right, left);
+		_player.MoveOnGround(fwd, back);
 	}
 	
 	private void playingMouse(float x, float y)
@@ -249,46 +231,27 @@ public class GameManager : Singleton<GameManager>
 		{
 			_maze.CanDoPickup = false;
 			AudioSource.PlayClipAtPoint(c.gameObject.audio.clip, c.gameObject.transform.position);
-			_player.AddScore(_maze.RemovePickups(c.gameObject));
-			//_elevator.ElevatorColor = _maze.SpawnPickups();
-			ElevatorColor = _maze.SpawnPickups();
-			_maze.CanDoPickup = true;
+			if(!_player.AddScore(_maze.RemovePickups(c.gameObject)))
+			{
+				ElevatorColor = _maze.SpawnPickups();
+				_maze.CanDoPickup = true;
+			}
+			else
+			{
+				ElevatorColor = new Color(0f, 0.7f, 0f);
+				if(c.gameObject != null)
+				{
+					c.gameObject.SetActive(false);
+				}
+			}
 		}
 		else if(c.gameObject.CompareTag("EndPickup"))
 		{
 			_state = GameStates.GameOver;
 		}
 	}
+	#endregion	
 
-	public void ElevatorTrigger(ElevatorBehaviour elevator, bool enter)
-	{
-		if(enter)
-		{
-			Debug.Log("Entered elevator");
-			//_elevator.ActivateElevator(elevatorGO);
-			_player.IsOnElevator = true;
-			_currentElevator = elevator;
-		}
-		else
-		{
-			Debug.Log("Exited elevator");
-			//_elevator.DeactivateElevator();
-			_elevatorEndTimer = 0f;
-			_player.IsOnElevator = false;
-		}
-	}
-	#endregion
-	
-	public void MoveElevator()
-	{
-		/*if(_elevator.IsMovingUp)
-		{
-			_elevator.MoveUp();
-			_player.MoveUp(_elevator.Speed);
-		}*/
-
-	}
-	
 	public void ShowEnd()
 	{
 		_maze.ShowEnd();
@@ -298,9 +261,18 @@ public class GameManager : Singleton<GameManager>
 
 	public Color ElevatorColor { get; private set; }
 
-	/*public ElevatorBehaviour CurrentElevator
+	public int[] Score
 	{
-		get { return _currentElevator; }
-		set { _currentElevator = value; }
-	}*/
+		get
+		{
+			if(_player != null)
+			{
+				return _player.Score;
+			}
+			else
+			{
+				return new int[] {0, 0, 0};
+			}
+		}
+	}
 }
