@@ -1,5 +1,5 @@
-CubeysConfusionCube
-===================
+Cubeys Confusion Cube
+=====================
 Randomly generated 3D maze navigation game.  Originally made for Ludem Dare 26, I'm attempting to fix some of the bugs that I had when I uploaded the game.
 
 The game requires Unity Pro.  The score keeping has been moved from the lower-left corner to a RenderTexture that is placed on walls.  This is the only feature that requires Unity Pro.
